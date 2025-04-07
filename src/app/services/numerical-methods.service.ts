@@ -1,63 +1,99 @@
 import { Injectable } from '@angular/core';
+import * as math from 'mathjs';
+
 
 @Injectable({
   providedIn: 'root'
 })
+
 export class NumericalMethodsService {
-
-  constructor() { }
-
-  euler(ecuacion: string, y0: number, x0: number, xf: number, h: number) {
-    let resultados = [];
-    let y = y0;
+  newtonRaphson(f: string, x0: number, tol: number = 1e-6, maxIter: number = 100): number {
     let x = x0;
-    while (x <= xf) {
-      resultados.push({ x: x, y: y });
-      y = y + h * this.evaluateEquation(ecuacion, x, y);
-      x = x + h;
+
+    const compiledFunc = math.compile(f);
+
+    for (let i = 0; i < maxIter; i++) {
+      let fx = compiledFunc.evaluate({ x: x });
+
+      let h = 1e-6;
+      let dfx = (compiledFunc.evaluate({ x: x + h }) - fx) / h;
+
+      if (Math.abs(dfx) < tol) {
+        throw new Error("La derivada es cero. No se puede aplicar el método de Newton-Raphson.");
+      }
+
+      let xNew = x - fx / dfx;
+      console.log(`Iteración ${i + 1}: x = ${xNew}`);
+
+      if (Math.abs(xNew - x) < tol) {
+        return xNew;
+      }
+
+      x = xNew;
     }
-    return resultados;
+    throw new Error("No se encontró una solución en el número máximo de iteraciones.");
   }
 
-  rungeKutta(ecuacion: string, y0: number, x0: number, xf: number, h: number) {
-    let resultados = [];
-    let y = y0;
-    let x = x0;
-    while (x <= xf) {
-      resultados.push({ x: x, y: y });
-      let k1 = h * this.evaluateEquation(ecuacion, x, y);
-      let k2 = h * this.evaluateEquation(ecuacion, x + h / 2, y + k1 / 2);
-      let k3 = h * this.evaluateEquation(ecuacion, x + h / 2, y + k2 / 2);
-      let k4 = h * this.evaluateEquation(ecuacion, x + h, y + k3);
-      y = y + (k1 + 2 * k2 + 2 * k3 + k4) / 6;
-      x = x + h;
+  rungeKutta(f: string, y0: number, x0: number, xf: number, h: number): [number[], number[]] {
+    let nSteps = this.calculateSteps(xf, x0, h);
+
+    let x: number[] = Array(nSteps + 1).fill(0);
+    let y: number[] = Array(nSteps + 1).fill(0);
+
+    const compiledFunc = math.compile(f);
+
+    x[0] = x0;
+    y[0] = y0;
+
+    for (let i = 0; i < nSteps; i++) {
+      let k1 = h * compiledFunc.evaluate({ x: x[i], y: y[i] });
+      let k2 = h * compiledFunc.evaluate({ x: x[i] + h / 2, y: y[i] + k1 / 2 });
+      let k3 = h * compiledFunc.evaluate({ x: x[i] + h / 2, y: y[i] + k2 / 2 });
+      let k4 = h * compiledFunc.evaluate({ x: x[i] + h, y: y[i] + k3 });
+
+      x[i + 1] = x[i] + h;
+      y[i + 1] = y[i] + (k1 + 2 * k2 + 2 * k3 + k4) / 6;
     }
-    return resultados;
+
+    return [x, y];
   }
 
-  // Método de Newton-Raphson
-  newtonRaphson(ecuacion: string, y0: number, x0: number, xf: number, h: number) {
-    let resultados = [];
-    let x = x0;
-    while (x <= xf) {
-      let f = this.evaluateEquation(ecuacion, x, y0);
-      let df = this.evaluateEquation(ecuacion, x + h, y0); // Aproximación para la derivada
-      let y = y0 - f / df;
-      resultados.push({ x: x, y: y });
-      x = x + h;
-    }
-    return resultados;
-  }
+  eulerMethod(f: string, y0: number, x0: number, xf: number, h: number): [number[], number[]] {
+    let nSteps = this.calculateSteps(xf, x0, h);
 
-  evaluateEquation(ecuacion: string, x: number, y: number): number {
-    const eq = ecuacion.replace(/sin/g, 'Math.sin').replace(/cos/g, 'Math.cos')
-      .replace(/tan/g, 'Math.tan').replace(/x/g, `(${x})`)
-      .replace(/y/g, `(${y})`);
+    console.log("nSteps", nSteps, "h", h, "xf", xf, "x0", x0, "y0", y0);
+
+    let x: number[] = Array(nSteps + 1).fill(0);
+    let y: number[] = Array(nSteps + 1).fill(0);
+
+    const compiledFunc = math.compile(f);
+
+    x[0] = x0;
+    y[0] = y0;
+
     try {
-      return eval(eq);
-    } catch (e) {
-      console.error('Error al evaluar la ecuación: ', e);
-      return 0;
+      for (let i = 0; i < nSteps; i++) {
+        let fValue = compiledFunc.evaluate({ x: x[i], y: y[i] });
+        if (!isFinite(fValue)) {
+          console.error(`Valor no finito detectado en iteración ${i}: ${fValue}`);
+          throw new Error(`La evaluación dio un resultado no válido (${fValue}) en x=${x[i]}, y=${y[i]}`);
+        }
+
+        console.log(`Iteración ${i + 1}: x = ${x[i]}, y = ${y[i]}, f(x,y) = ${fValue}`);
+
+        x[i + 1] = x[i] + h;
+        y[i + 1] = y[i] + h * fValue;
+      }
+    } catch (error) {
+      console.error("Error durante la ejecución del método de Euler:", error);
+      return [x.slice(0, x.findIndex(val => !isFinite(val)) || x.length),
+      y.slice(0, y.findIndex(val => !isFinite(val)) || y.length)];
     }
+
+    return [x, y];
+  }
+
+  calculateSteps(xf: number, x0: number, h: number): number {
+    return Math.floor((xf - x0) / h);
   }
 }

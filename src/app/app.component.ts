@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
 import { NumericalMethodsService } from './services/numerical-methods.service';
 import { InputFormComponent } from './components/input-form/input-form.component';
 import { ResultadosComponent } from './components/resultados/resultados.component';
@@ -8,7 +7,7 @@ import { IsRaphsonStateService } from './services/is-raphson-state.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, InputFormComponent, ResultadosComponent, CommonModule],
+  imports: [InputFormComponent, ResultadosComponent, CommonModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

@@ -1,0 +1,16 @@
+<div class="form-container">
+  <label for="ecuacion">Ecuación (dy/dx = f(x, y)):</label>
+  <input id="ecuacion" [(ngModel)]="ecuacion" placeholder="Ejemplo: sin(x) + y" class="input-style" />
+
+  <label for="condiciones">Condiciones Iniciales (y0, x0, xf, h):</label>
+  <input id="condiciones" [(ngModel)]="condiciones" placeholder="Ejemplo: 0, 0, 10, 0.1" class="input-style" />
+
+  <label for="metodo">Método:</label>
+  <select id="metodo" [(ngModel)]="metodo" class="select-style">
+    <option value="euler">Euler</option>
+    <option value="runge-kutta">Runge-Kutta</option>
+    <option value="newton-raphson">Newton-Raphson</option>
+  </select>
+
+  <button (click)="submitForm()" class="btn-submit">Resolver</button>
+</div>

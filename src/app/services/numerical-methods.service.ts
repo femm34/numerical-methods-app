@@ -7,32 +7,42 @@ import * as math from 'mathjs';
 })
 
 export class NumericalMethodsService {
-  newtonRaphson(f: string, x0: number, tol: number = 1e-6, maxIter: number = 100): number {
+  newtonRaphson(f: string, x0: number, tol: number = 1e-6, maxIter: number = 100): [number[], number[]] {
     let x = x0;
-
     const compiledFunc = math.compile(f);
+
+    // Arreglos para almacenar los valores de x y f(x) en cada iteración
+    let xValues: number[] = [x];
+    let fxValues: number[] = [compiledFunc.evaluate({ x: x })];
 
     for (let i = 0; i < maxIter; i++) {
       let fx = compiledFunc.evaluate({ x: x });
-
       let h = 1e-6;
       let dfx = (compiledFunc.evaluate({ x: x + h }) - fx) / h;
 
+      // Si la derivada es cero, lanzamos un error
       if (Math.abs(dfx) < tol) {
         throw new Error("La derivada es cero. No se puede aplicar el método de Newton-Raphson.");
       }
 
       let xNew = x - fx / dfx;
-      console.log(`Iteración ${i + 1}: x = ${xNew}`);
+
+      // Guardamos el valor de x y f(x) en cada iteración
+      xValues.push(xNew);
+      fxValues.push(compiledFunc.evaluate({ x: xNew }));
 
       if (Math.abs(xNew - x) < tol) {
-        return xNew;
+        return [xValues, fxValues];
       }
 
+      // Actualizamos x para la siguiente iteración
       x = xNew;
     }
+
+    // Si llegamos al número máximo de iteraciones sin encontrar una solución
     throw new Error("No se encontró una solución en el número máximo de iteraciones.");
   }
+
 
   rungeKutta(f: string, y0: number, x0: number, xf: number, h: number): [number[], number[]] {
     let nSteps = this.calculateSteps(xf, x0, h);

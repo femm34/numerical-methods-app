@@ -1,5 +1,11 @@
 <div class="app-container">
   <h1>{{ title }}</h1>
   <app-input-form (formSubmit)="resolver($event)"></app-input-form>
-  <app-resultados [resultados]="resultados"></app-resultados>
+  <app-resultados [isRaphson]="isRaphson" [resultados]="resultados"></app-resultados>
 </div>
+
+
+<hr
+  style="height: 3px; border: none; background: linear-gradient(to right, var(--primary-color), rgb(222, 225, 255)); box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);">
+
+<div class="footer-femm">Made with ♥️ and good vibes, jeje 🤟</div>

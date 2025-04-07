@@ -3,11 +3,11 @@
   <table>
     <tr>
       <th>x</th>
-      <th>y</th>
+      <th *ngIf="!isRaphson">y</th>
     </tr>
     <tr *ngFor="let resultado of resultados">
       <td>{{ resultado.x }}</td>
-      <td>{{ resultado.y }}</td>
+      <td *ngIf="!isRaphson">{{ resultado.y }}</td>
     </tr>
   </table>
 </div>
